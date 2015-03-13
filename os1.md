@@ -29,10 +29,10 @@ Apt有个很好的功能就是可以自动解决编译依赖，我们需要编�
 之后，在一个合适的位置建立个文件夹用于编译（我是在主目录下建立了一个mips-tools，
 所以以下 **假定使用/home/wlm/mips-tools** 这个目录，大家根据自己的情况 **自行修改** ）
 
-首先下载binutils和gcc的源码包，为了快，我们选用北京交通大学的镜像站(http://mirror.bjtu.edu.cn/gnu/)。
-我们需要下载binutils的最新版本(http://mirror.bjtu.edu.cn/gnu/binutils/binutils-2.25.tar.gz)，
-gcc的最新版本(http://mirror.bjtu.edu.cn/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz)，
-以及gxemul的0.4.6.6版(http://gxemul.sourceforge.net/src/gxemul-0.4.6.6.tar.gz)。
+首先下载binutils和gcc的源码包，为了快，我们选用[北京交通大学的镜像站](http://mirror.bjtu.edu.cn/gnu/) 。
+我们需要下载[binutils的最新版本](http://mirror.bjtu.edu.cn/gnu/binutils/binutils-2.25.tar.gz)，
+[gcc的最新版本](http://mirror.bjtu.edu.cn/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz)，
+以及[gxemul的0.4.6.6版](http://gxemul.sourceforge.net/src/gxemul-0.4.6.6.tar.gz)。
 请特别注意 **gxemul一定要用0.4的，最新的0.6版本和咱们的实验不兼容**　，
 将这三个包解压到mips-tools目录（关于这个目录，参见上文的假定）中，解压完后大致是这个样子：
 
@@ -135,7 +135,7 @@ CFLAGS最后的-fPIC也需要删掉，这里是因为咱们的GCC版本高，-mn
 ### printf的实现 ###
 
 这一部分个人感觉最重要的是了解printf中的格式化字符串的标准格式。这里推荐
-cplusplus上的说明(http://www.cplusplus.com/reference/cstdio/printf/)。
+cplusplus上的[说明](http://www.cplusplus.com/reference/cstdio/printf/)。
 
 一个format specifier（笔者英文渣，不知道中文该怎么翻译）的原型如下：
 
@@ -213,7 +213,7 @@ Makefile中有些地方是必须使用tab的。比如对于每一个target具体
 ### Linker Script ###
 
 Linker Script在指导书中的那段样例是直接从
-GNU LD的文档(https://www.sourceware.org/binutils/docs/ld/Simple-Example.html#Simple-Example)中拷过来的。
+[GNU LD的文档](https://www.sourceware.org/binutils/docs/ld/Simple-Example.html#Simple-Example)中拷过来的。
 和Makefile一样，这里有个坑要注意。
 
      SECTIONS
