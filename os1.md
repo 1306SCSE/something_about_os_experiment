@@ -26,6 +26,18 @@ Apt有个很好的功能就是可以自动解决编译依赖，我们需要编�
 
 这样就可以自动安装编译所依赖的软件包。其他发行版请自行解决编译依赖。
 
+编译GCC需要这些依赖：`gmp`, `mpfr`, `mpc`。对应软件包为：
+
++ libgmp-devel
++ libmpfr-devel
++ libmpc-devel
+
+Ubuntu发行版可以执行以下命令安装：
+
+    sudo apt-get install libgmp-devel
+    sudo apt-get install libmpfr-devel
+    sudo apt-get install libmpc-devel
+
 之后，在一个合适的位置建立个文件夹用于编译（我是在主目录下建立了一个mips-tools，
 所以以下 **假定使用/home/wlm/mips-tools** 这个目录，大家根据自己的情况 **自行修改** ）
 
