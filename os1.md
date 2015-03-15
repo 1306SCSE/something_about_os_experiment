@@ -104,9 +104,13 @@ RHEL/Fedora系列发行版可以执行以下命令安装：
     $ ./configure
     $ make
 
-在编译gxemul的过程中如果出现错误，很可能是因为依赖`libX11-devel`包的原因，Ubuntu发行版可以通过如下命令安装：
+在编译gxemul的过程中如果出现错误，很可能是因为依赖`libX11-devel`包的原因，Debian/Ubuntu系列发行版可以通过如下命令安装：
 
-    sudo apt-get install libX11-devel
+    sudo apt-get install libX11-dev
+    
+RHEL/Fedora系列发行版可以执行以下命令安装：
+
+    sudo yum install libX11-devel
 
 然后重新运行
 
