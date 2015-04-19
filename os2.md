@@ -7,6 +7,7 @@
 ## 实验二参考攻略（可能有错，仅供参考） ##
 ### 环境配置 ###
 
+### linux ###
 这里助教推荐的是Vim+ctags。我个人采用的是GNU Emacs + GNU Global(gtags)的组合，
 功能上大致相当，大家可以自由选择。其中Vim/Emacs是编辑器，而ctags/gtags的功能
 是在全局查找函数定义之类的，对于阅读代码来说很好用。
@@ -30,6 +31,30 @@ scp 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目标
 
 ```shell
 scp -r 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目标路径）/path/file 
+```
+
+### windows ###
+在windows下可以使用psftp完成相同的工作
+
+连接远程服务器：
+
+```shell
+open 10.111.1.11x
+```
+
+登录与进入13061xxx-lab文件与平时步骤相同
+
+更改接收文件目录：
+
+```shell
+lcd D:\ (just a example)
+```
+
+下载文件：
+
+```shell
+get -r 接收文件名 远程文件名
+example:get -r mm mm
 ```
 
 ### 阅读顺序及解析 ###
