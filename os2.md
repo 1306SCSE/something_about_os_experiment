@@ -21,7 +21,7 @@
 scp /path/file 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目标路径）
 ```
 
-下载采用
+下载采用：
 
 ```shell
 scp 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目标路径）/path/file 
@@ -34,7 +34,7 @@ scp -r 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目
 ```
 
 ### windows ###
-在windows下可以使用psftp完成相同的工作
+在windows下可以使用psftp完成相同的工作，psftp可以在putty的工具包中找到，可以通过附件下载。
 
 连接远程服务器：
 
@@ -50,10 +50,10 @@ open 10.111.1.11x
 lcd D:\ (just a example)
 ```
 
-下载文件：
+下载采用：
 
 ```shell
-get -r 接收文件名 远程文件名
+get -r 接收文件夹名 远程文件夹名
 example:get -r mm mm
 ```
 
