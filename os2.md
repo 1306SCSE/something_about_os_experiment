@@ -37,7 +37,7 @@ scp -r 1306XXXX@10.111.1.110（这个IP自行修改）:/home/1306XXXX/file（目
 在windows下可以使用psftp完成相同的工作，psftp可以在putty的工具包中找到，可以通过下面的链接进行下载：
 
 ```web
-http://www.mycodes.net/do/job.php?job=down_encode&fid=130&id=681&rid=673&i_id=25&mid=101&field=softurl&ti=0
+http://www.mycodes.net/do/job.php?job=down_encode&fid=130&id=681&rid=673&i_id=25&mid=101&field=softurl&ti=2
 ```
 
 连接远程服务器：
