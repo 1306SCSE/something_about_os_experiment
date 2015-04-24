@@ -150,7 +150,7 @@ void bzero(void *b, size_t len)
 因此，这里需要或一个PTE_V，否则后面会出错：
 
 ```c
-*targetPde = PADDR((struct Page*)alloc(sizeof(struct Page),BY2PG,1))|PTE_V;
+*targetPde = PADDR((struct Page*)alloc(BY2PG,BY2PG,1))|PTE_V;
 ```
 
 接下来是`boot_map_segment`，这个函数的作用根据指导书：
