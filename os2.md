@@ -445,3 +445,17 @@ struct name {                               \
 
 ## 实验2参考图例 ##
 ![os2实验参考图例](https://github.com/1306SCSE/something_about_os_experiment/raw/master/UnderStand.PNG)
+
+### 上图中的一些参数的解释 ###
+`Pgdir:页目录的基地址的虚拟地址`
+`Pgdir+PDX(va):va所对应的页目录项的虚拟地址`
+`PageTable:va所对应的页表的基地址的虚拟地址`
+`PageTable+PTX(va):va所对应的页表项的虚拟地址`
+`MMU:硬件MMU机制`
+
+### 流程参考 ###
+1.已知Pgdir,通过PDX(va)作为下标索引在Pgdir数组中寻找到Pgdir+PDX(va)所对应的内容，内容即是Pgdir[PDX(va)]。Pgdir[PDX(va)]等价于*(Pgdir+PDX(va))。Pgdir[PDX(va)]是va所对应的页表的物理地址。
+2.由于在程序中访问全部通过虚拟地址访问，所以为了访问页表需要构造其虚拟地址，即使用KADDR宏得到其虚拟地址为PageTable。总这里的KADDR在上文也提到了，实际上就是+ULIM，这是由mips中内核区直接映射机制所决定的，这一点与开启了分页机制的windows并不一样。
+3.已知PageTable，通过PTX(va)作为下标索引在Pgdir数组中找到PageTable+PTX(va)所对应的内容，内容即PageTable[PTX(va)]。这里值得注意的一点是页目录项里的内容（页表的物理地址基址）和页表项里的内容（页的物理地址基址）均为物理地址，且均为32位。前20位为地址位，后12位为flag位。
+4.虚线的部分是由MMU来做的，是为了展现这一过程而画出的，而在操作系统中的实际操作里，我们直接使用PageTable来访问va所对应的页表，而不是使用PADDR(PageTable)。
+5.关于操作系统与硬件MMU的区别我个人理解是：操作系统是建立映射关系，而MMU则是执行映射关系，两套机制不一样，但是是相辅相成的。
