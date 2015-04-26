@@ -441,3 +441,7 @@ struct name {                               \
 其中，`head`可以看出来，实际上是链表的头指针。`elm`代表你要插入的元素的指针。
 在实验中，我们需要填写`pages+i`或者`&pages[i]`。
 最后，`field`代表链表指针域的名字，比如对于咱们实验中的Page结构体，`field`部分就叫`pp_link`。
+
+
+## 实验2参考图例 ##
+![image](https://github.com/1306SCSE/something_about_os_experiment/raw/master/UnstandStand.PNG)
