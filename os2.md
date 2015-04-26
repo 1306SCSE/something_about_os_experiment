@@ -444,4 +444,4 @@ struct name {                               \
 
 
 ## 实验2参考图例 ##
-![image](https://github.com/1306SCSE/something_about_os_experiment/UnderStand.PNG)
+![os2实验参考图例](https://github.com/1306SCSE/something_about_os_experiment/raw/master/UnderStand.PNG)
