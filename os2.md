@@ -140,7 +140,7 @@ void bzero(void *b, size_t len)
 部分的内存，所以分配依旧需要使用`alloc`函数。当需要创建页表的时候，通过`alloc`分配一下物理
 内存给targetPde就好（因为此时targetPde为空）。之后重新计算pageTable的值，用于返回。
 
-这里有一个细节，就是页表项里存的是是页面的物理地址。所以在给`targetPde`赋值时，
+这里有一个细节，就是页表项里存的是页面的物理地址。所以在给`targetPde`赋值时，
 需要用`PADDR`宏来将内核部分的虚地址转换为物理地址。直接这样说还不够明确，
 页表项中储存的实际上是物理页框号，而一页是4K（12位），所以物理页框号只需要20位。
 于是MIPS就把剩下的12位定义为标记位。页表项是页面对物理页框的映射，所以
@@ -441,3 +441,27 @@ struct name {                               \
 其中，`head`可以看出来，实际上是链表的头指针。`elm`代表你要插入的元素的指针。
 在实验中，我们需要填写`pages+i`或者`&pages[i]`。
 最后，`field`代表链表指针域的名字，比如对于咱们实验中的Page结构体，`field`部分就叫`pp_link`。
+
+
+## 实验2参考图例 ##
+![os2实验参考图例](https://github.com/1306SCSE/something_about_os_experiment/raw/master/UnderStand.PNG)
+
+### 上图中的一些参数的解释 ###
+```
+Pgdir:页目录的基地址的虚拟地址
+Pgdir+PDX(va):va所对应的页目录项的虚拟地址
+PageTable:va所对应的页表的基地址的虚拟地址
+PageTable+PTX(va):va所对应的页表项的虚拟地址
+MMU:硬件MMU机制
+```
+
+### 流程参考 ###
+1.已知Pgdir,通过PDX(va)作为下标索引在Pgdir数组中寻找到Pgdir+PDX(va)所对应的内容，内容即是Pgdir[PDX(va)]。Pgdir[PDX(va)]等价于*(Pgdir+PDX(va))。Pgdir[PDX(va)]是va所对应的页表的物理地址。  
+
+2.由于在程序中访问全部通过虚拟地址访问，所以为了访问页表需要构造其虚拟地址，即使用KADDR宏得到其虚拟地址为PageTable。总这里的KADDR在上文也提到了，实际上就是+ULIM，这是由mips中内核区直接映射机制所决定的，这一点与开启了分页机制的windows并不一样。  
+
+3.已知PageTable，通过PTX(va)作为下标索引在Pgdir数组中找到PageTable+PTX(va)所对应的内容，内容即PageTable[PTX(va)]。这里值得注意的一点是页目录项里的内容（页表的物理地址基址）和页表项里的内容（页的物理地址基址）均为物理地址，且均为32位。前20位为地址位，后12位为flag位。  
+  
+4.虚线的部分是由MMU来做的，是为了展现这一过程而画出的，而在操作系统中的实际操作里，我们直接使用PageTable来访问va所对应的页表，而不是使用PADDR(PageTable)。  
+  
+5.关于操作系统与硬件MMU的区别我个人理解是：操作系统是建立映射关系，而MMU则是执行映射关系，两套机制不一样，但是是相辅相成的。
