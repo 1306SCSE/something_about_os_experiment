@@ -145,8 +145,19 @@ LIST_HEAD(Page_list, Page);
 ```
 `宏作用:`   
 `把结点插入空闲物理页面链表中。`  
-`Head是头指针，elm是当前元素指针，field是指在struct里面的成员，实际上这个就是一个建立头结点，并依次在头结点前面插入结点的一个宏。其中尤其值得注意的就是如果一开始head为空的话，那么就会自动帮你建立一个头指针，之后再进行结点的插入，每次插入的结点都会成为新的头结点。`
+`Head是头指针，elm是当前元素指针，field是指在struct里面的成员，实际上这个就是一个建立头结点，并依次在头结点前面插入结点的一个宏。其中尤其值得注意的就是如果一开始head为空的话，那么就会自动帮你建立一个头指针，之后再进行结点的插入，每次插入的结点都会成为新的头结点。`  
+`宏执行过程：`  
+`图示表示的是全部过程。下方指令执行后的效果使用--->这种虚线表示，而—— —— —— ——>这种虚线表示的是变量与区域的对应关系。`
+![osinsert1](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert1.png)
 
+![osinsert2](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert2.png)
+
+![osinsert3](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert3.png)
+
+![osinsert4](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert4.png)
+
+![osinsert5](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert5.png)
+  
 ###No.10  LIST_REMOVE 
 `宏名称:` `LIST_REMOVE (LIST_FIRST(&page_free_list),pp_link); `   
 `宏位置:` `queue.h`  
