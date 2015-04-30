@@ -144,9 +144,6 @@ LIST_HEAD(Page_list, Page);
 } while (0)
 ```
 `宏作用:`   
-`把结点插入空闲物理页面链表中。`  
-`Head是头指针，elm是当前元素指针，field是指在struct里面的成员，实际上这个就是一个建立头结点，并依次在头结点前面插入结点的一个宏。其中尤其值得注意的就是如果一开始head为空的话，那么就会自动帮你建立一个头指针，之后再进行结点的插入，每次插入的结点都会成为新的头结点。`  
-`宏执行过程：`  
 `图示表示的是全部过程。下方指令执行后的效果使用--->这种虚线表示，而—— —— —— ——>这种虚线表示的是变量与区域的对应关系。`
 ![osinsert1](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2insert/os2insert1.png)
 
@@ -171,6 +168,8 @@ LIST_HEAD(Page_list, Page);
 } while (0)
 ```
 `宏作用:`  
+`2015/4/30 15:57补充：图解中有一点小错误，在于elem和field的关系是：elem->field,而不是elem.field。正确关系如下图。`
+![osremove0](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2remove/os2remove0.png) 
 `1.在执行LIST_REMOVE宏之前,状态如下图所示。注意这里elem_prev是指elem前面那个元素，不是指它前面那个元素名字一定是elem_prev，没有任何关系。其中橙色部分的区域是指elem.field(就是pp_link)整个结构体(它包含了下面两个部分),蓝色部分的区域指elem.field->le_next部分。不同颜色的实线代表指针与区域的映射关系。比如elem_next的le_prev指向elem的蓝色区域表示ele_next的le_prev是le_next的一个指针。`
 ![osremove1](https://github.com/1306SCSE/something_about_os_experiment/raw/master/img/os2/os2remove/os2remove1.png)  
 `2.在执行第一条语句`
