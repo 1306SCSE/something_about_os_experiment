@@ -16,7 +16,7 @@
 
 ###No.2   bzero
 `宏名称:` `bzero(void*, size_t)`   
-`宏位置:` `mmu.h`  
+`宏位置:` `init.c`  
 `宏定义:`
 ```C
 void bzero(void *b, size_t len){
