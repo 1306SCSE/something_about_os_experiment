@@ -86,7 +86,7 @@ int env_alloc(struct Env **new, u_int parent_id)
 所以，我们在`env_create`中定义一个`struct Env`指针变量，并调用`env_alloc`即可完成第一步。
 
 ```c
-struct Env new = NULL;
+struct Env *new = NULL;
 /*1. allocate a new Env*/
 env_alloc(&new, 0);
 ```
