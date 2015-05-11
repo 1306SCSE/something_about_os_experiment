@@ -265,6 +265,8 @@ NESTED(except_vec3, 0, sp)
 END(except_vec3)
 ```
 
+需要注意的一点是，这段代码中的`.set noat`定义了后面的程序中不使用at，而如果你把这段代码放在_start之前，那么后面的代码就需要用到at，此时会报一个error。
+这时需要在`END`之后加入`.set at`来解决这个问题。
 这段代码需要用到exception_handlers，所以应该是和traps.o链接到一起的一个汇编文件里。
 所以我选择放在genex.S的最后。然后修改lds文件，增加：
 
