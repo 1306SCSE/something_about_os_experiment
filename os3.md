@@ -197,12 +197,20 @@ while(1)
 首先第一步是需要保存trap frame。这一步笔者折腾了好久，最后在`syscall_all.c:31`找到了灵感（感谢何涛大神）。
 
 ```c
-bcopy((int)KERNEL_SP-sizeof(struct Trapframe),TIMESTACK-sizeof(struct Trapframe),sizeof(struct Trapframe));
+// deschedule current environment
+void sys_yield(void)
+{
+        bcopy((int)KERNEL_SP-sizeof(struct Trapframe),TIMESTACK-sizeof(struct Trapframe),sizeof(struct Trapframe));
+        sched_yield();
+}
 ```
 
-根据这个函数的注释，这个函数会重新触发调度。我们可以看到，它将当前的运行信息保存在了`TIMESTACK-sizeof(struct Trapframe)`
-这个位置上了。因此，在`env_run`中，我们将保存在这里的当前进程信息进一步转存到env结构体中。
-那么，这里有一个 **大坑** （还是感谢神一般的何涛大神），这里还需要把env_tf.pc的地址设置为cp0_epc的位置。
+根据这个函数的注释，这个函数会重新触发调度。我们可以看到，
+它将当前的运行信息保存在了`TIMESTACK-sizeof(struct Trapframe)`
+这个位置上了。（ *这里做个额外说明，上面引用的代码只是为了说明我们如何推断出当前运行信息所在的位置。* ）
+因此，在`env_run`中，我们将保存在`TIMESTACK-sizeof(struct Trapframe)`的当前进程信息进一步转存到env结构体中。
+也就是说，我们需要调用bcopy，把`TIMESTACK-sizeof(struct Trapframe)`的内容拷贝到`&curenv->env_tf`这个地址。
+那么，这里有一个 **大坑** （还是感谢神一般的何涛大神）：这里还需要把env_tf.pc的地址设置为cp0_epc的位置。
 个人推测是这样：进程切换是由于时钟中断等各种中断触发的，所以，这个进程在再次被恢复执行的时候，
 应该执行导致（或遭受）异常的那条指令，相当于一个大的异常处理程序处理结束，返回到原来的程序中，
 所需要执行的那条指令。而异常返回地址记录在EPC中。也就是说，应该执行EPC（异常返回地址）寄存器中储存的那条指令。
