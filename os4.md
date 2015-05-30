@@ -1359,7 +1359,15 @@ make: *** [user] 错误 2
 
 错误原因：bintoc无执行权限。
 
-解决方案：进入user目录下执行`chmod +x ./bintoc`为bintoc增加可执行权限。
+解决方案：进入user目录下编辑Makefile，在执行bintoc之前添加可执行权限。
+
+```
+%.b.c: %.b
+echo create $@
+echo bintoc $* $< > $@~
+chmod +x ./bintoc
+./bintoc $* $< > $@~ && mv -f $@~ $@
+```
 
 ### 运行直接卡死 ###
 
