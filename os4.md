@@ -1253,14 +1253,27 @@ Fmars : parent env
 Parent begins to send
 1001 got 7777 from 800
 @@@@@send 1 from 1001 to 800
+[00001001] destroying 00001001
+[00001001] free env 00001001
+i am killed ... 
+800 got 1 from 1001
+[00000800] destroying 00000800
+[00000800] free env 00000800
+i am killed ... 
+```
+
+这里感谢罗天歌大神，如果你像笔者原来一样有如下错误输出
+
+```
 [1001    ] destroying 1001    
 [1001    ] free env 1001    
 i am killed ... 
 800 got 1 from 1001
 [800     ] destroying 800     
-[800     ] free env 800     
-i am killed ...
+[800     ] free env 800  
 ```
+
+那么说明lab1中对于%08x的支持有问题。需要回去做一些修正。
 
 好了，就是这些了，祝实验愉快！
 
@@ -1422,6 +1435,22 @@ pageout:        @@@___0x462000___@@@  ins a page
 一般是由于映射出错，所以在执行子进程的时候CPU读代码引发了缺页中断，然后触发了内核里面的pageout函数，
 自动插入了一个空白页。空白页相当于一页的nop指令。于是CPU就欢乐地执行了一大片nop，然后开始访问下一页代码，
 然后。。。哇，又是一堆nop。。。CPU愉快地nop啊nop，最后就崩了。。。
+
+### TOO LOW ###
+
+这里感谢罗天歌大神。当page_insert()的传入参数 page如果太小，会 TOO LOW。
+
+准确说是`＊page`的值，就是咱们`sys_ipc_can_send`，看自己怎么写的，如果会这么调用
+
+```c
+page = page_lookup( curenv->env_pgdir, srcva, 0 );
+page_insert( target->env_pgdir, page, target->env_ipc_dstva, 0 );
+//这个时候page_insert里的page == 0，导致 TOO LOW
+```
+
+上面两句的主要需要注意的问题在于`page_lookup`在发生错误时会返回一个0。
+如果不加判断直接`page_insert`的话就会导致TOO LOW这个错误。
+解决方案可以通过判断`page_lookup`返回值，再根据返回值是否为0做分别的处理。
 
 ## 关于攻略的补充说明 ##
 
