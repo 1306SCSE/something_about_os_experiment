@@ -5,6 +5,17 @@
 实验4要实现两部分内容，一部分是IPC（进程间通信）机制，另一部分是系统调用。
 这里假定你已经看过了老师给的指导书。
 
+更正及补充：
+
+1. 对于子进程，envid = 0，返回前需要修改当前的env为子进程的env结构体。原文已作出更改。
+2. 对于make的时候出现bintoc相关问题的解决方案有变化。
+3. pingpong的输出已更正
+4. 罗天歌大神提供了一种TOO LOW问题可能的原因及其解决方案。
+5. 李睿霖大神提供了对于checkperm问题的更正确的解决方案。
+6. 如果你在跑fktest或者pingpong时遇到panic的问题，可以尝试把duppage中的所有输出都注释掉，
+然后再增加0~2个`writef("");`（不同人不一样，有人一个输出都不能加，所以需要自己试一下）。
+这是此次实验最玄学的地方。
+
 ## 实验四参考攻略（可能有错，仅供参考） ##
 
 那个。。。这次的实验简直就是玄学。。。最后调出来的时候也不知道为啥。
@@ -709,7 +720,13 @@ extern void __asm_pgfault_handler(void);
 好吧，现在我们回到正题，我们需要调用下`set_pgfault_handler`，并将`pgfault`作为参数传入，即可完成这一步。
 
 调用系统调用`syscall_env_alloc()`创建子进程，然后根据返回的envid，分别做出处理。
-对于子进程，envid = 0，直接返回即可。对于父进程，需要继续进行下面的步骤。
+**对于子进程，envid = 0，需要修改当前的env为子进程的env结构体**
+
+```c
+env = &envs[ENVX(syscall_getenvid())];
+```
+
+对于父进程，需要继续进行下面的步骤。
 
 遍历所有页表目录，将父进程的页映射到子进程的对应位置上。这一步让笔者思考了很久。我们位处用户空间，
 只能使用系统调用以及用户地址空间里的东西，如何才能遍历页表呢？最后发现了注释中的提示
@@ -1162,7 +1179,7 @@ pageout:        @@@___0x7fdff000___@@@  ins a page
 e->env_cr3 = page2pa(p) | PTE_V; // 这里需要或一个PTE_V
 ```
 
-最后还有一处要改，在`lib/env.c`中：
+最后还有一处要改，这里感谢李睿霖大神，在`lib/env.c`中：
 
 ```c
 int envid2env(u_int envid, struct Env **penv, int checkperm)
@@ -1182,14 +1199,17 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
 
         if (checkperm) {
                 cur_envid = envid;
-                while (&envs[ENVX(cur_envid)] != curenv && ENVX(cur_envid) != 0)
+        // 这里的判断条件由ENVX(cur_envid) != 0改为cur_envid != 0。
+        // ENVX()用于获得cur_envid在envs数组中的位置。而这里应该是不断追溯父进程id是否为0
+        // 如果一直追溯到了0，说明envid并不是当前进程的子进程，所以也就无权修改envid那个进程的东西。
+                while (&envs[ENVX(cur_envid)] != curenv && cur_envid != 0)
                 {
                         envid = envs[ENVX(cur_envid)].env_parent_id;
                         cur_envid = envid;
                 }
         // 这里需要做一下修改，感觉应该是原来的代码有错。
         // 判断的时候判断条件有点小问题。
-                if (&envs[ENVX(cur_envid)] != curenv && ENVX(cur_envid) == 0)
+                if (&envs[ENVX(cur_envid)] != curenv && cur_envid == 0)
                 {
                         *penv = 0;
                         return -E_BAD_ENV;
@@ -1233,7 +1253,7 @@ this is father: a:1
 ```
 
 由于多进程轮转的缘故，输出可能不是这么整齐，有可能输出一半另一个进程开始输出了，都很正常。
-只要是这三句话就行。大概需要等5~10秒才会出现子进程输出的那两句，所以一开始没有不要着急中断程序。
+只要是这三句话就行。大概 **需要等5~10秒** 才会出现子进程输出的那两句，所以一开始没有不要着急中断程序。
 
 最后我们要弄的进程的名字是`user_pingpong`。所以再把原来的`ENV_CREATE`换为`user_pingpong`，
 这个是测试fork和ipc的实现是否正确的。正确输出大致如下
