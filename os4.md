@@ -14,7 +14,9 @@
 5. 李睿霖大神提供了对于checkperm问题的更正确的解决方案。
 6. 如果你在跑fktest或者pingpong时遇到panic的问题，可以尝试把duppage中的所有输出都注释掉，
 然后再增加0~2个`writef("");`（不同人不一样，有人一个输出都不能加，所以需要自己试一下）。
-这是此次实验最玄学的地方。
+这是此次实验最玄学的地方。还有一种解决办法是把duppage直接全部拷贝到fork里面，而不再调用duppage。
+相当于直接把duppage嵌进去，据何涛大神说这样可以完美解决这个坑。
+7. 刘佳铮大神提供了关于pageout：panic("<<<<<<<<<<<<<<<<<<<<<<it"s env"s zone")问题的相关内容。
 
 ## 实验四参考攻略（可能有错，仅供参考） ##
 
@@ -1471,6 +1473,25 @@ page_insert( target->env_pgdir, page, target->env_ipc_dstva, 0 );
 上面两句的主要需要注意的问题在于`page_lookup`在发生错误时会返回一个0。
 如果不加判断直接`page_insert`的话就会导致TOO LOW这个错误。
 解决方案可以通过判断`page_lookup`返回值，再根据返回值是否为0做分别的处理。
+
+### 关于pageout的相关问题 ###
+
+以下内容由刘佳铮大神提供，十分感谢。这个问题的输出大致如下。
+在运行pingpong这个进程时，输出
+
+```
+Fmars : parent env
+Parent begins to send
+pageout：panic("<<<<<<<<<<<<<<<<<<<<<<it"s env"s zone")
+```
+
+进入ipc细节去看，会发现是在寻找`env->env_ipc_from`时找不到值而产生错误。
+实际上，`&env->env_ipc_from`的地址就在env里，
+但是当程序在进入fork时，没有给env这个分配物理页时就会出现这个错误。
+如果愿意的话，可以打任意的env里的属性，全部都会pageout。
+最后经过一番寻找，笔者发现错误的地方在pmap.c，
+而且在`boot_map_segment`、`walk`时都有可能引发这个错误。
+结合三个人错误来看，出现在walk的几率比较大。原因是perm没有并上PTE_V，导致fork时不能COW。
 
 ## 关于攻略的补充说明 ##
 
