@@ -4,7 +4,7 @@
 
 实验5是的核心在于文件系统。这里假定你已经理解了各种概念。
 
-## 实验三参考攻略（可能有错，仅供参考） ##
+## 实验五参考攻略（可能有错，仅供参考） ##
 
 终于到第五个实验了，干掉全部6个实验已经指日可待了，让我们一起加油吧！
 这个实验应该是代码量最少的一个实验了。
@@ -219,11 +219,9 @@ pmap.c:  mips vm init success
 
 panic at init.c:29: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-????DEBUG: sizeof(struct File)=256
+????FS is running
 
-?FS is running
-
-FS can do I/O
+?FS can do I/O
 
 ????fs.c:read_super() 1
 
