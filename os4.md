@@ -5,6 +5,19 @@
 实验4要实现两部分内容，一部分是IPC（进程间通信）机制，另一部分是系统调用。
 这里假定你已经看过了老师给的指导书。
 
+更正及补充：
+
+1. 对于子进程，envid = 0，返回前需要修改当前的env为子进程的env结构体。原文已作出更改。
+2. 对于make的时候出现bintoc相关问题的解决方案有变化。
+3. pingpong的输出已更正
+4. 罗天歌大神提供了一种TOO LOW问题可能的原因及其解决方案。
+5. 李睿霖大神提供了对于checkperm问题的更正确的解决方案。
+6. 如果你在跑fktest或者pingpong时遇到panic的问题，可以尝试把duppage中的所有输出都注释掉，
+然后再增加0~2个`writef("");`（不同人不一样，有人一个输出都不能加，所以需要自己试一下）。
+这是此次实验最玄学的地方。还有一种解决办法是把duppage直接全部拷贝到fork里面，而不再调用duppage。
+相当于直接把duppage嵌进去，据何涛大神说这样可以完美解决这个坑。
+7. 刘佳铮大神提供了关于pageout：panic("<<<<<<<<<<<<<<<<<<<<<<it"s env"s zone")问题的相关内容。
+
 ## 实验四参考攻略（可能有错，仅供参考） ##
 
 那个。。。这次的实验简直就是玄学。。。最后调出来的时候也不知道为啥。
@@ -599,10 +612,10 @@ OK，终于进入到fork.c了。这个文件里的函数是给用户程序调用
   生成新的进程。
   若 envid 为 0，说明返回的进程为子进程；否则，需要为子进程拷贝地址空间。
   遍历所有页表目录，将父进程的页映射到子进程的对应位置上。
- 为子进程的 exception stack 单独分配一个新的内存页。
- 设置子进程的缺页中断函数入口和 exception stack 的地址。
- 设置子进程的状态为可以运行，将其加入到进程调度队列。
- 返回新进程 ID。
+  为子进程的 exception stack 单独分配一个新的内存页。
+  设置子进程的缺页中断函数入口和 exception stack 的地址。
+  设置子进程的状态为可以运行，将其加入到进程调度队列。
+  返回新进程 ID。
 
 目前我们处于用户空间，fork.c是用户级的实现，所以我们需要使用系统调用等用户进程可以
 使用的功能来完成我们的所有操作。所有用户级系统调用实现在`lib.h`中。
@@ -709,7 +722,13 @@ extern void __asm_pgfault_handler(void);
 好吧，现在我们回到正题，我们需要调用下`set_pgfault_handler`，并将`pgfault`作为参数传入，即可完成这一步。
 
 调用系统调用`syscall_env_alloc()`创建子进程，然后根据返回的envid，分别做出处理。
-对于子进程，envid = 0，直接返回即可。对于父进程，需要继续进行下面的步骤。
+**对于子进程，envid = 0，需要修改当前的env为子进程的env结构体**
+
+```c
+env = &envs[ENVX(syscall_getenvid())];
+```
+
+对于父进程，需要继续进行下面的步骤。
 
 遍历所有页表目录，将父进程的页映射到子进程的对应位置上。这一步让笔者思考了很久。我们位处用户空间，
 只能使用系统调用以及用户地址空间里的东西，如何才能遍历页表呢？最后发现了注释中的提示
@@ -790,7 +809,7 @@ copy-on-write，否则的话则将父进程的页以原标记映射到子进程�
 而这些页子进程也在用，导致了子进程所获得的值是错误的。所以，为了保证`copy-on-write`的正确性，
 我们需要将父进程的页也映射为“copy-on-write”。避免父进程对于页面的不可控的修改。
 
-这里有一点要注意，`env2envid`这个函数，如果想获得当前进程的env，只需要传入0即可。
+这里有一点要注意，`envid2env`这个函数，如果想获得当前进程的envid，只需要传入0即可。
 所以，如果在调用`syscall_mem_map`一类的函数时，需要传自己的`envid`，则只需要简单地传入0即可。
 
 下面我们进入最后一个函数，`pgfault()`。这里直接参见指导书的说明做就好（以下摘自指导书）。
@@ -1162,7 +1181,7 @@ pageout:        @@@___0x7fdff000___@@@  ins a page
 e->env_cr3 = page2pa(p) | PTE_V; // 这里需要或一个PTE_V
 ```
 
-最后还有一处要改，在`lib/env.c`中：
+最后还有一处要改，这里感谢李睿霖大神，在`lib/env.c`中：
 
 ```c
 int envid2env(u_int envid, struct Env **penv, int checkperm)
@@ -1182,14 +1201,17 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
 
         if (checkperm) {
                 cur_envid = envid;
-                while (&envs[ENVX(cur_envid)] != curenv && ENVX(cur_envid) != 0)
+        // 这里的判断条件由ENVX(cur_envid) != 0改为cur_envid != 0。
+        // ENVX()用于获得cur_envid在envs数组中的位置。而这里应该是不断追溯父进程id是否为0
+        // 如果一直追溯到了0，说明envid并不是当前进程的子进程，所以也就无权修改envid那个进程的东西。
+                while (&envs[ENVX(cur_envid)] != curenv && cur_envid != 0)
                 {
                         envid = envs[ENVX(cur_envid)].env_parent_id;
                         cur_envid = envid;
                 }
         // 这里需要做一下修改，感觉应该是原来的代码有错。
         // 判断的时候判断条件有点小问题。
-                if (&envs[ENVX(cur_envid)] != curenv && ENVX(cur_envid) == 0)
+                if (&envs[ENVX(cur_envid)] != curenv && cur_envid == 0)
                 {
                         *penv = 0;
                         return -E_BAD_ENV;
@@ -1233,7 +1255,7 @@ this is father: a:1
 ```
 
 由于多进程轮转的缘故，输出可能不是这么整齐，有可能输出一半另一个进程开始输出了，都很正常。
-只要是这三句话就行。大概需要等5~10秒才会出现子进程输出的那两句，所以一开始没有不要着急中断程序。
+只要是这三句话就行。大概 **需要等5~10秒** 才会出现子进程输出的那两句，所以一开始没有不要着急中断程序。
 
 最后我们要弄的进程的名字是`user_pingpong`。所以再把原来的`ENV_CREATE`换为`user_pingpong`，
 这个是测试fork和ipc的实现是否正确的。正确输出大致如下
@@ -1253,14 +1275,27 @@ Fmars : parent env
 Parent begins to send
 1001 got 7777 from 800
 @@@@@send 1 from 1001 to 800
+[00001001] destroying 00001001
+[00001001] free env 00001001
+i am killed ... 
+800 got 1 from 1001
+[00000800] destroying 00000800
+[00000800] free env 00000800
+i am killed ... 
+```
+
+这里感谢罗天歌大神，如果你像笔者原来一样有如下错误输出
+
+```
 [1001    ] destroying 1001    
 [1001    ] free env 1001    
 i am killed ... 
 800 got 1 from 1001
 [800     ] destroying 800     
-[800     ] free env 800     
-i am killed ...
+[800     ] free env 800  
 ```
+
+那么说明lab1中对于%08x的支持有问题。需要回去做一些修正。
 
 好了，就是这些了，祝实验愉快！
 
@@ -1359,7 +1394,15 @@ make: *** [user] 错误 2
 
 错误原因：bintoc无执行权限。
 
-解决方案：进入user目录下执行`chmod +x ./bintoc`为bintoc增加可执行权限。
+解决方案：进入user目录下编辑Makefile，在执行bintoc之前添加可执行权限。
+
+```
+%.b.c: %.b
+echo create $@
+echo bintoc $* $< > $@~
+chmod +x ./bintoc
+./bintoc $* $< > $@~ && mv -f $@~ $@
+```
 
 ### 运行直接卡死 ###
 
@@ -1414,6 +1457,41 @@ pageout:        @@@___0x462000___@@@  ins a page
 一般是由于映射出错，所以在执行子进程的时候CPU读代码引发了缺页中断，然后触发了内核里面的pageout函数，
 自动插入了一个空白页。空白页相当于一页的nop指令。于是CPU就欢乐地执行了一大片nop，然后开始访问下一页代码，
 然后。。。哇，又是一堆nop。。。CPU愉快地nop啊nop，最后就崩了。。。
+
+### TOO LOW ###
+
+这里感谢罗天歌大神。当page_insert()的传入参数 page如果太小，会 TOO LOW。
+
+准确说是`＊page`的值，就是咱们`sys_ipc_can_send`，看自己怎么写的，如果会这么调用
+
+```c
+page = page_lookup( curenv->env_pgdir, srcva, 0 );
+page_insert( target->env_pgdir, page, target->env_ipc_dstva, 0 );
+//这个时候page_insert里的page == 0，导致 TOO LOW
+```
+
+上面两句的主要需要注意的问题在于`page_lookup`在发生错误时会返回一个0。
+如果不加判断直接`page_insert`的话就会导致TOO LOW这个错误。
+解决方案可以通过判断`page_lookup`返回值，再根据返回值是否为0做分别的处理。
+
+### 关于pageout的相关问题 ###
+
+以下内容由刘佳铮大神提供，十分感谢。这个问题的输出大致如下。
+在运行pingpong这个进程时，输出
+
+```
+Fmars : parent env
+Parent begins to send
+pageout：panic("<<<<<<<<<<<<<<<<<<<<<<it"s env"s zone")
+```
+
+进入ipc细节去看，会发现是在寻找`env->env_ipc_from`时找不到值而产生错误。
+实际上，`&env->env_ipc_from`的地址就在env里，
+但是当程序在进入fork时，没有给env这个分配物理页时就会出现这个错误。
+如果愿意的话，可以打任意的env里的属性，全部都会pageout。
+最后经过一番寻找，笔者发现错误的地方在pmap.c，
+而且在`boot_map_segment`、`walk`时都有可能引发这个错误。
+结合三个人错误来看，出现在walk的几率比较大。原因是perm没有并上PTE_V，导致fork时不能COW。
 
 ## 关于攻略的补充说明 ##
 
