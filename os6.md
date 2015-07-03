@@ -229,16 +229,18 @@ $
 ```
 这时可以输入`ls.b`会看到正常的`ls`命令结果，就说明shell能启动。
 
+输入`cat.b`应该会看到回显现象，即我们按下`123`，会显示为`112233`，类似于终端的本地回显。
+
 ## Happy hacking! ##
-如果`pageref(fd)`工作不正常，可以检查`mm/pmap.c`中`boot_map_segment()`函数是否缺少
++ 如果`pageref(fd)`工作不正常，可以检查`mm/pmap.c`中`boot_map_segment()`函数是否缺少
 ```c
 boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 ```
 如果缺少无法通过`pages`数组访问函数。（感谢罗天歌、李开意大神）
 
-如果`fork()`出来的进程栈出了问题，请检查`duppage()`函数运用时是否将`UXSTACKTOP`这一页映射掉。这是异常返回栈，不能映射。映射到`UTOP-BY2PG`或者`UXSTACKTOP`都可以。（感谢何涛、罗天歌、李开意大神）
++ 如果`fork()`出来的进程栈出了问题，请检查`duppage()`函数运用时是否将`UXSTACKTOP`这一页映射掉。这是异常返回栈，不能映射。映射到`UTOP-BY2PG`或者`UXSTACKTOP`都可以。（感谢何涛、罗天歌、李开意大神）
 
-如果测试`testpipe`的时候发现`got 0 bytes`的话，可能是`fork.c`里的`duppage`权限位设置出了点小毛病，在`duppage`里修改为如下:
++ 如果测试`testpipe`的时候发现`got 0 bytes`的话，可能是`fork.c`里的`duppage`权限位设置出了点小毛病，在`duppage`里修改为如下:
 ```C
 	if(perm & PTE_LIBARARY) {
 		perm = perm | PTE_V | PTE_R;
@@ -247,5 +249,10 @@ boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 		perm = perm | PTE_V | PTE_R | PTE_COW;
 	}
 ```
-(感谢罗天歌、李开意大神)
-
+（感谢罗天歌、李开意大神）
++ 如果测试`sh.b`时发现有`panic at ./include/pmap.h 41:pa2page:fffffff`的错误时,注意修改`./mm/pmap.c`中的`page_remove`函数，该函数没有对`va2pa`失败的情况做判断，需要在`va2pa`后面加上
+```C
+	if(pa == ~0)
+	   return ;
+```
+（感谢何涛大神）
