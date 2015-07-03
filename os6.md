@@ -237,3 +237,15 @@ boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 如果缺少无法通过`pages`数组访问函数。（感谢罗天歌、李开意大神）
 
 如果`fork()`出来的进程栈出了问题，请检查`duppage()`函数运用时是否将`UXSTACKTOP`这一页映射掉。这是异常返回栈，不能映射。映射到`UTOP-BY2PG`或者`UXSTACKTOP`都可以。（感谢何涛、罗天歌、李开意大神）
+
+如果测试`testpipe`的时候发现`got 0 bytes`的话，可能是`fork.c`里的`duppage`权限位设置出了点小毛病，在`duppage`里修改为如下:
+```C
+	if(perm & PTE_LIBARARY) {
+		perm = perm | PTE_V | PTE_R;
+	}
+	else{
+		perm = perm | PTE_V | PTE_R | PTE_COW;
+	}
+```
+(感谢罗天歌、李开意大神)
+
