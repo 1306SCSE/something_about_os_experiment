@@ -232,7 +232,7 @@ $
 输入`cat.b`应该会看到回显现象，即我们按下`123`，会显示为`112233`，类似于终端的本地回显。
 
 ## Happy hacking! ##
-+ 如果`pageref(fd)`工作不正常，可以检查`mm/pmap.c`中`boot_map_segment()`函数是否缺少
++ 如果`pageref(fd)`工作不正常，可以检查`mm/pmap.c`的`mips_vm_init`中是否没有进行`UPAGES`区域的段映射。(助教没写)
 ```c
 boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 ```
