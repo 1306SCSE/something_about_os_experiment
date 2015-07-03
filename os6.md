@@ -259,6 +259,4 @@ boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 ```
 （感谢何涛大神）
 
-如果`fork()`出来的进程栈出了问题，请检查`duppage()`函数运用时是否将`UXSTACKTOP`这一页映射掉。这是异常返回栈，不能映射。映射到`UTOP-BY2PG`或者`UXSTACKTOP`都可以。（感谢何涛、罗天歌、李开意大神）
-
-如果`testpipe`对了一半，也就是前一半读测试正确，但是后一半写测试`panic at pmap.c`的话，有可能要检查`pmap.c`的`page_alloc()`函数，如果调用了`static void page_initpp(struct Page *pp)`就请注意了，`sizeof(struct Page) != BY2PG`。所以最好使用`void bzero(void *, size_t);`来初始化页面。（感谢罗天歌、李开意大神）
++ 如果`testpipe`对了一半，也就是前一半读测试正确，但是后一半写测试`panic at pmap.c`的话，有可能要检查`pmap.c`的`page_alloc()`函数，如果调用了`static void page_initpp(struct Page *pp)`就请注意了，`sizeof(struct Page) != BY2PG`。所以最好使用`void bzero(void *, size_t);`来初始化页面。（感谢罗天歌、李开意大神）
