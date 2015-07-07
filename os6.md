@@ -259,4 +259,4 @@ boot_map_segment(pgdir,UPAGES,npage*sizeof(struct Page),PADDR(pages),PTE_R);
 ```
 （感谢何涛大神）
 
-+ 如果`testpipe`对了一半，也就是前一半读测试正确，但是后一半写测试`panic at pmap.c`的话，有可能要检查`pmap.c`的`page_alloc()`函数，如果调用了`static void page_initpp(struct Page *pp)`就请注意了，`sizeof(struct Page) != BY2PG`。所以最好使用`void bzero(void *, size_t);`来初始化页面。（感谢罗天歌、李开意大神）
++ 如果`testpipe`对了一半，也就是前一半读测试正确，但是后一半写测试`panic at pmap.c`的话，有可能要检查`pmap.c`的`page_alloc()`函数，如果调用了`static void page_initpp(struct Page *pp)`就请注意了，`sizeof(struct Page) != BY2PG`。所以最好使用`void bzero(void *, size_t);`来初始化页面。注意这里不是`bzero(*pp,BY2PG)`，是初始化对应页`bzero(page2kva(*pp),BY2PPG);`（感谢罗天歌、李开意大神）
