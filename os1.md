@@ -48,6 +48,7 @@ RHEL/Fedora系列发行版可以执行以下命令安装：
 [gcc的最新版本](http://mirror.bjtu.edu.cn/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz)，
 以及[gxemul的0.4.6.6版](http://gxemul.sourceforge.net/src/gxemul-0.4.6.6.tar.gz)。
 请特别注意 **gxemul一定要用0.4的，最新的0.6版本和咱们的实验不兼容**　，
+(**笔者注：在完成后面的实验时，笔者发现gcc 4.9.2会造成实验产生奇怪的错误，可以的话还是选用4.0版本的gcc吧**)
 将这三个包解压到mips-tools目录（关于这个目录，参见上文的假定）中，解压完后大致是这个样子：
 
     ~/mips-tools $ ls
